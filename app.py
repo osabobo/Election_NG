@@ -17,7 +17,7 @@ def embedchain_bot(db_path: str, api_key: str) -> App:
         }
     )
 
-st.title("Chat with PDFs - Vector Database")
+st.title("Chat  on Nigeria Election Data")
 
 # Use Streamlit Cloud secrets
 openai_access_token = st.secrets["OPENAI_API_KEY"]
