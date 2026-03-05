@@ -1,18 +1,6 @@
-<<<<<<< HEAD
-streamlit
 embedchain==0.1.128
-chromadb==0.4.24
-rich==13.9.4
-pypdf
-langchain-community
-openai
-tiktoken
-=======
-python-dotenv
-embedchain==0.1.125
-chromadb==0.4.24
-pypdf
-langchain-community
-openai
-tiktoken
->>>>>>> d8582a08a14c85e0b3f219afdff4a0b271479245
+rich==13.7.0
+streamlit
+markdown-it-py==4.0.0
+mdurl==0.1.2
+pygments==2.19.2
