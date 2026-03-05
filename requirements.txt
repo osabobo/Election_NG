@@ -1,2 +1,8 @@
 streamlit
-embedchain
+embedchain==0.1.128
+chromadb==0.4.24
+rich==13.9.4
+pypdf
+langchain-community
+openai
+tiktoken
