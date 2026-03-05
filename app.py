@@ -1,12 +1,14 @@
 import os
+import shutil
 import streamlit as st
 from embedchain import App
 
-# Create persistent database directory
-DB_DIR = os.path.join(os.path.dirname(__file__), "vector_db")
-PDF_DIR = os.path.dirname(__file__)
+BASE_DIR = os.path.dirname(__file__)
+DB_DIR = os.path.join(BASE_DIR, "vector_db")
+PDF_DIR = os.path.join(BASE_DIR, "pdfs")  # put PDFs here
 
-def embedchain_bot(db_path, api_key):
+def embedchain_bot(db_path: str, api_key: str) -> App:
+    os.makedirs(db_path, exist_ok=True)
     return App.from_config(
         config={
             "llm": {"provider": "openai", "config": {"api_key": api_key}},
@@ -15,122 +17,67 @@ def embedchain_bot(db_path, api_key):
         }
     )
 
-st.title("Chat with PDF - Vector Database")
+st.title("Chat with PDFs - Vector Database")
 
-#openai_access_token = st.text_input("OpenAI API Key", type="password")
+# Use Streamlit Cloud secrets
 openai_access_token = st.secrets["OPENAI_API_KEY"]
-if openai_access_token:
 
-    # Create persistent database (not temporary)
-    if "db_path" not in st.session_state:
-        os.makedirs(DB_DIR, exist_ok=True)
-        st.session_state.db_path = DB_DIR
-    
-    if "app" not in st.session_state:
-        st.session_state.app = embedchain_bot(st.session_state.db_path, openai_access_token)
-        st.session_state.indexed_files = set()
+# Ensure folders exist
+os.makedirs(DB_DIR, exist_ok=True)
+os.makedirs(PDF_DIR, exist_ok=True)
 
-    # Keep DB stable across reruns
-    if "db_path" not in st.session_state:
-        st.session_state.db_path = tempfile.mkdtemp()
-    if "app" not in st.session_state:
-        st.session_state.app = embedchain_bot(st.session_state.db_path, openai_access_token)
+# Create app once per session
+if "app" not in st.session_state:
+    st.session_state.app = embedchain_bot(DB_DIR, openai_access_token)
 
-    app = st.session_state.app
+# Track indexed files in this session
+if "indexed_files" not in st.session_state:
+    st.session_state.indexed_files = set()
 
+app = st.session_state.app
 
-    app = st.session_state.app
+with st.sidebar:
+    st.header("📚 Vector Database")
 
+    pdf_files = [f for f in os.listdir(PDF_DIR) if f.lower().endswith(".pdf")]
 
-    # Sidebar: Manage Vector Database
-    with st.sidebar:
-        st.header("📚 Vector Database")
-        
-        # Find available PDFs
-        pdf_files = [f for f in os.listdir(PDF_DIR) if f.endswith(".pdf")]
-        
-        if pdf_files:
-            st.subheader("Available PDFs")
-            for pdf_file in pdf_files:
-                col1, col2 = st.columns([3, 1])
-                with col1:
-                    st.caption(pdf_file)
-                with col2:
-                    if st.button("Add", key=pdf_file):
-                        pdf_path = os.path.join(PDF_DIR, pdf_file)
-                        try:
-                            app.add(pdf_path, data_type="pdf_file")
-                            st.session_state.indexed_files.add(pdf_file)
-                            st.success(f"✅ Added {pdf_file}")
-                        except Exception as e:
-                            st.error(f"❌ Error: {e}")
-        else:
-            st.info("No PDF files found in app directory")
-        
-        # Show indexed files
-        if st.session_state.indexed_files:
-            st.subheader("Indexed Files")
-            for file in st.session_state.indexed_files:
-                st.caption(f"✔️ {file}")
-        
-        # Clear database button
-        if st.button("🗑️ Clear Database"):
-            import shutil
-            if os.path.exists(DB_DIR):
-                shutil.rmtree(DB_DIR)
-                os.makedirs(DB_DIR, exist_ok=True)
-            st.session_state.indexed_files = set()
-            st.session_state.app = embedchain_bot(st.session_state.db_path, openai_access_token)
-            st.success("Database cleared!")
-
-    if pdf_file:
-        file_bytes = pdf_file.getvalue()
-
-        # 1) Guard: empty upload
-        if not file_bytes:
-            st.error(f"'{pdf_file.name}' is empty (0 bytes). Please re-upload.")
-            st.stop()
-
-        # 2) Guard: not a real PDF
-        if not file_bytes.startswith(b"%PDF"):
-            st.error(f"'{pdf_file.name}' doesn't look like a valid PDF.")
-            st.stop()
-
-        # 3) Save to temp file and DO NOT delete immediately
-        tmp = tempfile.NamedTemporaryFile(delete=False, suffix=".pdf")
-        tmp.write(file_bytes)
-        tmp.close()
-
-        try:
-            app.add(tmp.name, data_type="pdf_file")
-            st.success(f"Added {pdf_file.name} to knowledge base!")
-            # store so you can optionally clean up later
-            st.session_state.last_tmp_pdf = tmp.name
-        except Exception as e:
-            st.error(f"Failed to process PDF: {e}")
-        # NOTE: don't os.remove(tmp.name) here
-
-
-    # Main chat interface
-    if st.session_state.indexed_files:
-        prompt = st.text_input("Ask a question about your documents")
-
-
-        if prompt:
-            answer = app.chat(prompt)
-            st.write(answer)
+    if not pdf_files:
+        st.info("No PDFs found. Add PDFs to the /pdfs folder in your repo.")
     else:
-        st.info("👈 Add PDFs from the sidebar to start chatting!")
+        st.subheader("Available PDFs in /pdfs")
+        for pdf_name in sorted(pdf_files):
+            col1, col2 = st.columns([3, 1])
 
+            with col1:
+                st.caption(pdf_name)
+
+            with col2:
+                already = pdf_name in st.session_state.indexed_files
+                if st.button("Add", key=f"add_{pdf_name}", disabled=already):
+                    pdf_path = os.path.join(PDF_DIR, pdf_name)
+                    try:
+                        app.add(pdf_path, data_type="pdf_file", metadata={"source": pdf_name})
+                        st.session_state.indexed_files.add(pdf_name)
+                        st.success(f"✅ Added {pdf_name}")
+                    except Exception as e:
+                        st.error(f"❌ Error: {e}")
+
+    if st.session_state.indexed_files:
+        st.subheader("Indexed (this session)")
+        for f in sorted(st.session_state.indexed_files):
+            st.caption(f"✔️ {f}")
+
+    if st.button("🗑️ Clear Database"):
+        shutil.rmtree(DB_DIR, ignore_errors=True)
+        os.makedirs(DB_DIR, exist_ok=True)
+        st.session_state.indexed_files = set()
+        st.session_state.app = embedchain_bot(DB_DIR, openai_access_token)
+        st.success("Database cleared!")
+
+# Main chat
+if st.session_state.indexed_files:
+    prompt = st.text_input("Ask a question about your documents")
     if prompt:
-        answer = app.chat(prompt)
-        st.write(answer)
-
-    # Optional: cleanup button (delete after you're done chatting)
-    if st.button("Clear uploaded temp PDF"):
-        p = st.session_state.get("last_tmp_pdf")
-        if p and os.path.exists(p):
-            os.remove(p)
-        st.success("Temp PDF cleared.")
-
-    
+        st.write(app.chat(prompt))
+else:
+    st.info("👈 Add PDFs from the sidebar to start chatting!")
