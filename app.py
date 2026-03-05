@@ -67,12 +67,12 @@ with st.sidebar:
         for f in sorted(st.session_state.indexed_files):
             st.caption(f"✔️ {f}")
 
-    if st.button("🗑️ Clear Database"):
-        shutil.rmtree(DB_DIR, ignore_errors=True)
-        os.makedirs(DB_DIR, exist_ok=True)
-        st.session_state.indexed_files = set()
-        st.session_state.app = embedchain_bot(DB_DIR, openai_access_token)
-        st.success("Database cleared!")
+    #if st.button("🗑️ Clear Database"):
+       # shutil.rmtree(DB_DIR, ignore_errors=True)
+       #os.makedirs(DB_DIR, exist_ok=True)
+        #st.session_state.indexed_files = set()
+        #st.session_state.app = embedchain_bot(DB_DIR, openai_access_token)
+        #st.success("Database cleared!")
 
 # Main chat
 if st.session_state.indexed_files:
