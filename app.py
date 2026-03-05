@@ -15,7 +15,7 @@ def embedchain_bot(db_path, api_key):
 st.title("Chat with PDF")
 
 #openai_access_token = st.text_input("OpenAI API Key", type="password")
-openai_api_key = st.secrets["OPENAI_API_KEY"]
+openai_access_token = st.secrets["OPENAI_API_KEY"]
 if openai_access_token:
     # Keep DB stable across reruns
     if "db_path" not in st.session_state:
