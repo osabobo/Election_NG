@@ -20,6 +20,7 @@ st.title("Chat with PDF - Vector Database")
 #openai_access_token = st.text_input("OpenAI API Key", type="password")
 openai_access_token = st.secrets["OPENAI_API_KEY"]
 if openai_access_token:
+<<<<<<< HEAD
     # Create persistent database (not temporary)
     if "db_path" not in st.session_state:
         os.makedirs(DB_DIR, exist_ok=True)
@@ -28,9 +29,19 @@ if openai_access_token:
     if "app" not in st.session_state:
         st.session_state.app = embedchain_bot(st.session_state.db_path, openai_access_token)
         st.session_state.indexed_files = set()
+=======
+    # Keep DB stable across reruns
+    if "db_path" not in st.session_state:
+        st.session_state.db_path = tempfile.mkdtemp()
+    if "app" not in st.session_state:
+        st.session_state.app = embedchain_bot(st.session_state.db_path, openai_access_token)
+
+    app = st.session_state.app
+>>>>>>> b1b8639be5a2586e5db045386938e2ab87403069
 
     app = st.session_state.app
 
+<<<<<<< HEAD
     # Sidebar: Manage Vector Database
     with st.sidebar:
         st.header("📚 Vector Database")
@@ -71,13 +82,56 @@ if openai_access_token:
             st.session_state.indexed_files = set()
             st.session_state.app = embedchain_bot(st.session_state.db_path, openai_access_token)
             st.success("Database cleared!")
+=======
+    if pdf_file:
+        file_bytes = pdf_file.getvalue()
+
+        # 1) Guard: empty upload
+        if not file_bytes:
+            st.error(f"'{pdf_file.name}' is empty (0 bytes). Please re-upload.")
+            st.stop()
+
+        # 2) Guard: not a real PDF
+        if not file_bytes.startswith(b"%PDF"):
+            st.error(f"'{pdf_file.name}' doesn't look like a valid PDF.")
+            st.stop()
+
+        # 3) Save to temp file and DO NOT delete immediately
+        tmp = tempfile.NamedTemporaryFile(delete=False, suffix=".pdf")
+        tmp.write(file_bytes)
+        tmp.close()
+
+        try:
+            app.add(tmp.name, data_type="pdf_file")
+            st.success(f"Added {pdf_file.name} to knowledge base!")
+            # store so you can optionally clean up later
+            st.session_state.last_tmp_pdf = tmp.name
+        except Exception as e:
+            st.error(f"Failed to process PDF: {e}")
+        # NOTE: don't os.remove(tmp.name) here
+>>>>>>> b1b8639be5a2586e5db045386938e2ab87403069
 
     # Main chat interface
     if st.session_state.indexed_files:
         prompt = st.text_input("Ask a question about your documents")
 
+<<<<<<< HEAD
         if prompt:
             answer = app.chat(prompt)
             st.write(answer)
     else:
         st.info("👈 Add PDFs from the sidebar to start chatting!")
+=======
+    if prompt:
+        answer = app.chat(prompt)
+        st.write(answer)
+
+    # Optional: cleanup button (delete after you're done chatting)
+    if st.button("Clear uploaded temp PDF"):
+        p = st.session_state.get("last_tmp_pdf")
+        if p and os.path.exists(p):
+            os.remove(p)
+        st.success("Temp PDF cleared.")
+
+    
+>>>>>>> b1b8639be5a2586e5db045386938e2ab87403069
