@@ -1,2 +1,7 @@
-streamlit
-embedchain
+python-dotenv
+embedchain==0.1.125
+chromadb==0.4.24
+pypdf
+langchain-community
+openai
+tiktoken
