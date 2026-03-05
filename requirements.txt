@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 streamlit
 embedchain==0.1.128
 chromadb==0.4.24
@@ -6,3 +7,12 @@ pypdf
 langchain-community
 openai
 tiktoken
+=======
+python-dotenv
+embedchain==0.1.125
+chromadb==0.4.24
+pypdf
+langchain-community
+openai
+tiktoken
+>>>>>>> d8582a08a14c85e0b3f219afdff4a0b271479245
