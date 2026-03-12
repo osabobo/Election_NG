@@ -1,4 +1,4 @@
-embedchain==0.1.128
+embedchain
 rich==13.7.0
 streamlit
 markdown-it-py==4.0.0
