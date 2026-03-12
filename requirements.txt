@@ -1,7 +1,6 @@
-
 embedchain
 streamlit
-tiktoken>=0.4.0      # add this line
+tiktoken==0.5.3     # add this line
 rich==13.7.0
 markdown-it-py==4.0.0
 mdurl==0.1.2
