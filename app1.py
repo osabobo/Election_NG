@@ -55,7 +55,7 @@ def auto_index_pdfs(app):
 
 # ---------------- STREAMLIT APP ----------------
 st.set_page_config(page_title="Nigeria Election AI", layout="centered")
-st.title("Nigeria Election Data AI Assistant")
+st.title("Nigeria Election Data intelligence")
 
 openai_access_token = st.secrets["OPENAI_API_KEY"]
 
