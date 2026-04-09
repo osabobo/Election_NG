@@ -7,3 +7,6 @@ mdurl==0.1.2
 pygments==2.19.2
 chromadb
 langchain
+langchain-community
+langchain-openai
+google-search-results
