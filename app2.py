@@ -121,7 +121,7 @@ if prompt:
     # If document has answer
     if "NOT_FOUND" not in str(doc_answer):
 
-        st.markdown("### 📄 Answer from Documents")
+        #st.markdown("### 📄 Answer from Documents")
         st.write(doc_answer)
 
     else:
@@ -130,5 +130,5 @@ if prompt:
             web_agent = create_web_agent()
             web_answer = web_agent.run(prompt)
 
-        st.markdown("### 🌍 Answer from Internet")
+        #st.markdown("### 🌍 Answer from Internet")
         st.write(web_answer)
